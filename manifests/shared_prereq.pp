@@ -1,6 +1,7 @@
 #
 class xldeploy::shared_prereq(
   $base_dir,
+  $xldeploy_base_dir,
   $os_user,
   $os_group,
   $os_user_home,
@@ -53,6 +54,10 @@ class xldeploy::shared_prereq(
     group  => $os_group,
   }
 
+  # xldeploy base dir
 
+  file { $xldeploy_base_dir:
+    ensure => directory,
+  }
 
 }
