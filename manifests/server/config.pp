@@ -120,6 +120,16 @@ class xldeploy::server::config (
     admin_password    => $admin_password
   }
 
+  exec { 'debug1':
+    command => '/bin/sleep 300',
+  }
+  exec { 'debug2':
+    command => '/bin/sleep 301',
+  }
+  exec { 'debug3':
+    command => '/bin/sleep 302',
+  }
+
   if $::xldeploy_encrypted_password == undef {
     ini_setting {
       'xldeploy.admin.password':
@@ -174,17 +184,21 @@ class xldeploy::server::config (
 
   if versioncmp($version , '4.9.99') < 0 {
     Xldeploy_setup['default'] ->
+    Exec['debug1'] ->
     file { "/etc/init.d/${productname}":
       content => template("xldeploy/xldeploy-initd-${::osfamily}.erb"),
       owner   => 'root',
       group   => 'root',
       mode    => '0700'
-    }
+    } ->
+    Exec['debug2']
   } else {
     Xldeploy_setup['default'] ->
+    Exec['debug1'] ->
     exec {"/bin/echo ${os_user}|${server_home_dir}/bin/install-service.sh":
       unless => "/usr/bin/test -f /etc/init.d/${productname}",
-    }
+    } ->
+    Exec['debug2']
   }
 
 
