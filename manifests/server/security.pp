@@ -36,45 +36,23 @@ class xldeploy::server::security(
     mode   => '0640'
   }
 
-  #if where dealing with a 4.x release the header of the deployit-securtity file is different
-  # issuenr: 16
-
-  if versioncmp($version , '3.9.90') < 0 {
-    concat::fragment{'security_header':
-      ensure  => present,
-      target  => $security_config_file,
-      content => template('xldeploy/security/security-header-pre4.xml.erb'),
-      order   => '10',
-    }
-  } elsif versioncmp($version , '4.5.90') < 0 {
-    concat::fragment{'security_header':
-      ensure  => present,
-      target  => $security_config_file,
-      content => template('xldeploy/security/security-header-post51.xml.erb'),
-      order   => '10',
-    }
-    concat::fragment{'httpsecurity':
-      ensure  => present,
-      target  => $security_config_file,
-      content => template('xldeploy/security/security-httpsecurity-pre51.xml.erb'),
-      order   => '50',
-    }
+  # Header
+  concat::fragment{'security_header':
+    ensure  => present,
+    target  => $security_config_file,
+    content => template('xldeploy/security/security-header.xml.erb'),
+    order   => '10',
   }
-  else {
-    concat::fragment{'security_header':
-      ensure  => present,
-      target  => $security_config_file,
-      content => template('xldeploy/security/security-header-post51.xml.erb'),
-      order   => '10',
-    }
-    concat::fragment{'httpsecurity':
-      ensure  => present,
-      target  => $security_config_file,
-      content => template('xldeploy/security/security-httpsecurity-post51.xml.erb'),
-      order   => '50',
-    }
+ 
+  # HTTP Security 
+  concat::fragment{'httpsecurity':
+    ensure  => present,
+    target  => $security_config_file,
+    content => template('xldeploy/security/security-httpsecurity.xml.erb'),
+    order   => '50',
   }
 
+  # Footer
   concat::fragment{'security_footer':
     ensure  => present,
     target  => $security_config_file,
@@ -82,16 +60,14 @@ class xldeploy::server::security(
     order   => '90',
   }
 
-  if $xldeploy_authentication_providers {
-    concat::fragment{'security_beans':
+  # LDAP yes/no
+  if $ldap_server_id {
+    concat::fragment{'security_authentication_manager':
       ensure  => present,
       target  => $security_config_file,
-      content => template('xldeploy/security/security-beans.xml.erb'),
+      content => template('xldeploy/security/security-authentication-manager-ldap.xml.erb'),
       order   => '20',
     }
-  }
-
-  if $ldap_server_id {
     concat::fragment{'security_ldapserver':
       ensure  => present,
       target  => $security_config_file,
@@ -99,11 +75,12 @@ class xldeploy::server::security(
       order   => '30',
     }
   }
-  concat::fragment{'security_authentication_manager':
-    ensure  => present,
-    target  => $security_config_file,
-    content => template('xldeploy/security/security-authentication-manager.xml.erb'),
-    order   => '40',
+  else {
+    concat::fragment{'security_authentication_manager':
+      ensure  => present,
+      target  => $security_config_file,
+      content => template('xldeploy/security/security-authentication-manager.xml.erb'),
+      order   => '20',
+    }
   }
-
 }
